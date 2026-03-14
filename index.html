@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VelynCam — Polaroid Photo Studio</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-pink: hsl(330 100% 60%);
+            --primary-pink-dark: hsl(330 100% 50%);
+            --bg-light: hsl(0 0% 85%);
+            --white: #ffffff;
+            --text-dark: #1a1a1a;
+            --text-gray: #666666;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.2);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
+        }
+
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Custom Animations */
+        @keyframes genz-gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes polaroid-drop {
+            0% { opacity: 0; transform: translateY(-30px) rotate(-5deg); }
+            100% { opacity: 1; transform: translateY(0) rotate(0); }
+        }
+
+        @keyframes sticker-wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+
+        @keyframes soft-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes fade-up {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-up {
+            animation: fade-up 0.6s ease-out forwards;
+        }
+
+        .animate-float {
+            animation: soft-float 3s ease-in-out infinite;
+        }
+
+        .animate-wiggle {
+            animation: sticker-wiggle 2s ease-in-out infinite;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text-dark);
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .logo-accent {
+            color: var(--primary-pink);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-pink);
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--primary-pink), #ff6b9d);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-dark);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, var(--primary-pink) 100%);
+            background-size: 200% 200%;
+            animation: genz-gradient 15s ease infinite;
+            overflow: hidden;
+            padding-top: 80px;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5));
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            max-width: 900px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .hero-headline {
+            font-family: 'Permanent Marker', cursive;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: polaroid-drop 0.8s ease-out;
+        }
+
+        .hero-subheadline {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-pink);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-pink-dark);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 2px solid rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: soft-float 2s ease-in-out infinite;
+        }
+
+        .scroll-indicator svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+            opacity: 0.8;
+        }
+
+        /* Services Section */
+        .services {
+            padding: 6rem 2rem;
+            background: var(--white);
+        }
+
+        .section-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-family: 'Permanent Marker', cursive;
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--card-accent), transparent);
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .service-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .service-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-desc {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+        }
+
+        /* Camera Studio Section */
+        .studio {
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, var(--white) 0%, var(--bg-light) 100%);
+        }
+
+        .studio-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .studio-panel {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .panel-title {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        /* Template Selector */
+        .template-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .template-option {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .template-option:hover {
+            transform: scale(1.05);
+        }
+
+        .template-option.active {
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.3);
+        }
+
+        .template-lavender { background: linear-gradient(135deg, #e0c3fc, #8ec5fc); color: #4a4a4a; }
+        .template-sky { background: linear-gradient(135deg, #a8edea, #fed6e3); color: #4a4a4a; }
+        .template-noir { background: linear-gradient(135deg, #2c3e50, #4ca1af); color: white; }
+        .template-star { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+        .template-sakura { background: linear-gradient(135deg, #ffecd2, #fcb69f); color: #4a4a4a; }
+        .template-butter { background: linear-gradient(135deg, #fdfbf7, #fceabb); color: #4a4a4a; }
+
+        /* Photo Count Selector */
+        .photo-count-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .count-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-light);
+            background: var(--white);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .count-btn.active {
+            background: var(--primary-pink);
+            color: white;
+            border-color: var(--primary-pink);
+        }
+
+        /* Caption Input */
+        .caption-input-group {
+            margin-bottom: 2rem;
+        }
+
+        .caption-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--bg-light);
+            border-radius: var(--radius-md);
+            font-family: 'Caveat', cursive;
+            font-size: 1.2rem;
+            resize: none;
+            transition: border-color 0.3s;
+        }
+
+        .caption-input:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+        }
+
+        .caption-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-ai:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn-upload {
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .btn-upload:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-download {
+            background: var(--primary-pink);
+            color: white;
+            width: 100%;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-download:hover {
+            background: var(--primary-pink-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Progress Dots */
+        .progress-dots {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .progress-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--bg-light);
+            transition: all 0.3s;
+        }
+
+        .progress-dot.filled {
+            background: var(--primary-pink);
+        }
+
+        /* Preview Panel */
+        .preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 500px;
+        }
+
+        .photobox-card {
+            background: white;
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .photobox-card:hover {
+            transform: rotate(1deg) scale(1.02);
+        }
+
+        .card-accent-bar {
+            height: 30px;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .card-watermark {
+            opacity: 0.8;
+        }
+
+        .card-photos {
+            display: grid;
+            gap: 0.5rem;
+            padding: 1rem 0;
+        }
+
+        .photo-slot {
+            aspect-ratio: 1;
+            background: var(--bg-light);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .photo-slot:hover {
+            background: #d0d0d0;
+        }
+
+        .photo-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-slot .placeholder {
+            color: var(--text-gray);
+            font-size: 2rem;
+        }
+
+        .photo-slot .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .photo-slot:hover .delete-btn {
+            display: flex;
+        }
+
+        .card-caption-strip {
+            background: var(--white);
+            padding: 0.75rem;
+            border-top: 2px solid var(--bg-light);
+        }
+
+        .card-caption {
+            font-family: 'Caveat', cursive;
+            font-size: 1.3rem;
+            color: var(--text-dark);
+            text-align: center;
+            min-height: 1.5em;
+        }
+
+        .card-branding {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-gray);
+            margin-top: 0.25rem;
+            letter-spacing: 1px;
+        }
+
+        /* Corner Decorations */
+        .card-decoration {
+            position: absolute;
+            font-size: 1.5rem;
+            pointer-events: none;
+        }
+
+        .card-decoration.top-left { top: 40px; left: 10px; }
+        .card-decoration.top-right { top: 40px; right: 10px; }
+        .card-decoration.bottom-left { bottom: 50px; left: 10px; }
+        .card-decoration.bottom-right { bottom: 50px; right: 10px; }
+
+        /* Contact Section */
+        .contact {
+            padding: 6rem 2rem;
+            background: var(--white);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .contact-card {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .contact-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-label {
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--bg-light);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+        }
+
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-submit {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-pink);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .form-submit:hover {
+            background: var(--primary-pink-dark);
+            transform: translateY(-2px);
+        }
+
+        .form-success {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border-radius: var(--radius-lg);
+            color: white;
+        }
+
+        .form-success.show {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-dark);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-accent {
+            color: var(--primary-pink);
+        }
+
+        .footer-text {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--text-dark);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        /* Hidden Canvas */
+        #exportCanvas {
+            display: none;
+        }
+
+        /* Responsive Styles */
+        @media (min-width: 640px) {
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .contact-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .studio-container {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .template-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .services-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .nav-links {
+                display: flex;
+            }
+
+            .hamburger {
+                display: none;
+            }
+        }
+
+        @media (max-width: 639px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 1rem 2rem;
+                box-shadow: var(--shadow-md);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-cta {
+                display: none;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero-stats {
+                gap: 1rem;
+            }
+
+            .photobox-card {
+                max-width: 100%;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-content">
+            <a href="#" class="logo">
+                <span class="logo-icon">📷</span>
+                <span>Velyn<span class="logo-accent">Cam</span></span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#studio">Studio</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <a href="#studio" class="nav-cta">Start Creating</a>
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <span class="hero-badge">✨ Instant Film Photography — Reimagined</span>
+            <h1 class="hero-headline">Capture Every Moment</h1>
+            <p class="hero-subheadline">Create stunning polaroid-style photo cards with AI-powered captions, vintage filters, and instant sharing. Your memories, beautifully preserved.</p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-value">50K+</div>
+                    <div class="stat-label">Photos Created</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">4.9⭐</div>
+                    <div class="stat-label">User Rating</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">Always</div>
+                    <div class="stat-label">Free</div>
+                </div>
+            </div>
+            <div class="hero-buttons">
+                <a href="#studio" class="btn-primary">📸 Open Camera Studio</a>
+                <a href="#services" class="btn-secondary">Explore Services</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <svg viewBox="0 0 24 24">
+                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">What We Offer</h2>
+                <p class="section-subtitle">Everything you need to create and share beautiful photo memories</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card" style="--card-accent: #ff6b9d;">
+                    <div class="service-icon">⚡</div>
+                    <h3 class="service-title">Instant Capture</h3>
+                    <p class="service-desc">Upload photos instantly and see them transformed into beautiful polaroid cards in real-time.</p>
+                </div>
+                <div class="service-card" style="--card-accent: #667eea;">
+                    <div class="service-icon">🤖</div>
+                    <h3 class="service-title">AI Reflections</h3>
+                    <p class="service-desc">Get inspiring, personalized captions generated by AI to perfectly match your moments.</p>
+                </div>
+                <div class="service-card" style="--card-accent: #11998e;">
+                    <div class="service-icon">🖼️</div>
+                    <h3 class="service-title">Multi-Photo Cards</h3>
+                    <p class="service-desc">Combine 1-6 photos in various layouts - portrait, landscape, square, or creative grids.</p>
+                </div>
+                <div class="service-card" style="--card-accent: #f093fb;">
+                    <div class="service-icon">📥</div>
+                    <h3 class="service-title">One-Click Export</h3>
+                    <p class="service-desc">Download high-quality PNG files ready for printing or sharing on social media.</p>
+                </div>
+                <div class="service-card" style="--card-accent: #fad0c4;">
+                    <div class="service-icon">🎨</div>
+                    <h3 class="service-title">Vintage Filters</h3>
+                    <p class="service-desc">Choose from 6 unique themed templates with distinct colors and decorations.</p>
+                </div>
+                <div class="service-card" style="--card-accent: #a8edea;">
+                    <div class="service-icon">☁️</div>
+                    <h3 class="service-title">Cloud Gallery</h3>
+                    <p class="service-desc">Store your creations securely in the cloud and access them anytime, anywhere.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Camera Studio Section -->
+    <section class="studio" id="studio">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">Create Your Card</h2>
+                <p class="section-subtitle">Design your perfect polaroid photo card</p>
+            </div>
+            <div class="studio-container">
+                <!-- Left Panel - Controls -->
+                <div class="studio-panel">
+                    <h3 class="panel-title">🎨 Customize</h3>
+                    
+                    <!-- Template Selector -->
+                    <label style="font-weight: 600; display: block; margin-bottom: 0.75rem;">Choose Template</label>
+                    <div class="template-selector">
+                        <div class="template-option template-lavender active" data-template="lavender">
+                            🌸 Lavender OMG
+                        </div>
+                        <div class="template-option template-sky" data-template="sky">
+                            ☁️ Sky Pixel
+                        </div>
+                        <div class="template-option template-noir" data-template="noir">
+                            🖤 Noir Dot
+                        </div>
+                        <div class="template-option template-star" data-template="star">
+                            ⭐ Star Teal
+                        </div>
+                        <div class="template-option template-sakura" data-template="sakura">
+                            🌺 Sakura Pop
+                        </div>
+                        <div class="template-option template-butter" data-template="butter">
+                            🧈 Butter Soft
+                        </div>
+                    </div>
+
+                    <!-- Photo Count Selector -->
+                    <label style="font-weight: 600; display: block; margin-bottom: 0.75rem;">Number of Photos</label>
+                    <div class="photo-count-selector">
+                        <button class="count-btn active" data-count="1">1</button>
+                        <button class="count-btn" data-count="2">2</button>
+                        <button class="count-btn" data-count="3">3</button>
+                        <button class="count-btn" data-count="4">4</button>
+                        <button class="count-btn" data-count="5">5</button>
+                        <button class="count-btn" data-count="6">6</button>
+                    </div>
+
+                    <!-- Caption Input -->
+                    <label style="font-weight: 600; display: block; margin-bottom: 0.75rem;">Caption</label>
+                    <div class="caption-input-group">
+                        <textarea 
+                            class="caption-input" 
+                            id="captionInput" 
+                            placeholder="Write something special..." 
+                            maxlength="80"
+                            rows="2"
+                        ></textarea>
+                        <div class="caption-actions">
+                            <button class="btn-small btn-ai" id="aiGenerateBtn">
+                                ✨ AI Generate
+                            </button>
+                            <span id="charCount" style="margin-left: auto; color: var(--text-gray); font-size: 0.85rem;">0/80</span>
+                        </div>
+                    </div>
+
+                    <!-- Upload Button -->
+                    <label style="font-weight: 600; display: block; margin-bottom: 0.75rem;">Add Photos</label>
+                    <input type="file" id="photoUpload" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+                    <button class="btn-small btn-upload" id="uploadBtn" style="width: 100%; margin-bottom: 1.5rem;">
+                        📁 Upload Photos
+                    </button>
+
+                    <!-- Download Button -->
+                    <button class="btn-download" id="downloadBtn">
+                        💾 Download PNG
+                    </button>
+
+                    <!-- Progress Dots -->
+                    <div class="progress-dots" id="progressDots">
+                        <div class="progress-dot filled"></div>
+                        <div class="progress-dot"></div>
+                        <div class="progress-dot"></div>
+                        <div class="progress-dot"></div>
+                        <div class="progress-dot"></div>
+                        <div class="progress-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Right Panel - Preview -->
+                <div class="studio-panel">
+                    <h3 class="panel-title">👁️ Live Preview</h3>
+                    <div class="preview-container">
+                        <div class="photobox-card" id="photoboxCard">
+                            <div class="card-accent-bar" id="cardAccentBar">
+                                <span class="card-watermark">VELYNCAM</span>
+                            </div>
+                            <div class="card-decoration top-left" id="decorationTopLeft">🌸</div>
+                            <div class="card-decoration top-right" id="decorationTopRight">✨</div>
+                            <div class="card-decoration bottom-left" id="decorationBottomLeft">💜</div>
+                            <div class="card-decoration bottom-right" id="decorationBottomRight">🦋</div>
+                            <div class="card-photos" id="cardPhotos">
+                                <div class="photo-slot" data-index="0">
+                                    <span class="placeholder">+</span>
+                                    <button class="delete-btn" onclick="deletePhoto(event, 0)">✕</button>
+                                </div>
+                            </div>
+                            <div class="card-caption-strip">
+                                <div class="card-caption" id="cardCaption"></div>
+                                <div class="card-branding">velyncam · 2026</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">Get In Touch</h2>
+                <p class="section-subtitle">We'd love to hear from you!</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="contact-icon">📧</div>
+                    <div class="contact-label">Email</div>
+                    <div class="contact-value">guardianmarx@gmail.com</div>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">📍</div>
+                    <div class="contact-label">Location</div>
+                    <div class="contact-value">Surabaya, Indonesia</div>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">🟢</div>
+                    <div class="contact-label">Availability</div>
+                    <div class="contact-value">Always online</div>
+                </div>
+            </div>
+            <div class="contact-form" id="contactForm">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" id="fullName" placeholder="Your name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="email" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message</label>
+                    <textarea class="form-textarea" id="message" placeholder="How can we help?" required></textarea>
+                </div>
+                <button type="submit" class="form-submit" id="submitBtn">Send Message</button>
+            </div>
+            <div class="form-success" id="formSuccess">
+                <div class="success-icon">✅</div>
+                <h3 style="margin-bottom: 0.5rem;">Message Sent!</h3>
+                <p style="margin-bottom: 1.5rem;">Thank you for reaching out. We'll get back to you soon!</p>
+                <button class="btn-secondary" id="sendAnotherBtn" style="background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5);">Send Another Message</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-logo">Velyn<span class="footer-accent">Cam</span></div>
+        <p class="footer-text">© 2026 VelynCam. All rights reserved.</p>
+        <p class="footer-text">Made with 💖 for capturing life's precious moments</p>
+    </footer>
+
+    <!-- Hidden Canvas for Export -->
+    <canvas id="exportCanvas"></canvas>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // State Management
+        const state = {
+            currentTemplate: 'lavender',
+            photoCount: 1,
+            photos: [],
+            caption: '',
+            isGenerating: false
+        };
+
+        // Template Configurations
+        const templates = {
+            lavender: {
+                accent: '#c471ed',
+                gradient: 'linear-gradient(135deg, #e0c3fc, #8ec5fc)',
+                decorations: ['🌸', '✨', '💜', '🦋'],
+                textColor: '#4a4a4a'
+            },
+            sky: {
+                accent: '#a8edea',
+                gradient: 'linear-gradient(135deg, #a8edea, #fed6e3)',
+                decorations: ['☁️', '💙', '✨', '🕊️'],
+                textColor: '#4a4a4a'
+            },
+            noir: {
+                accent: '#2c3e50',
+                gradient: 'linear-gradient(135deg, #2c3e50, #4ca1af)',
+                decorations: ['🖤', '⚫', '🌙', '✨'],
+                textColor: 'white'
+            },
+            star: {
+                accent: '#11998e',
+                gradient: 'linear-gradient(135deg, #11998e, #38ef7d)',
+                decorations: ['⭐', '✨', '🌟', '💫'],
+                textColor: 'white'
+            },
+            sakura: {
+                accent: '#ff9a9e',
+                gradient: 'linear-gradient(135deg, #ffecd2, #fcb69f)',
+                decorations: ['🌺', '🌸', '💗', '🦋'],
+                textColor: '#4a4a4a'
+            },
+            butter: {
+                accent: '#fceabb',
+                gradient: 'linear-gradient(135deg, #fdfbf7, #fceabb)',
+                decorations: ['🧈', '💛', '✨', '🌻'],
+                textColor: '#4a4a4a'
+            }
+        };
+
+        // Layout configurations based on photo count
+        const layouts = {
+            1: { rows: 1, cols: 1, aspect: 'square' },
+            2: { rows: 1, cols: 2, aspect: 'portrait' },
+            3: { rows: 2, cols: 2, aspect: 'mixed' },
+            4: { rows: 2, cols: 2, aspect: 'square' },
+            5: { rows: 3, cols: 2, aspect: 'mixed' },
+            6: { rows: 2, cols: 3, aspect: 'landscape' }
+        };
+
+        // DOM Elements
+        const navbar = document.getElementById('navbar');
+        const navLinks = document.getElementById('navLinks');
+        const hamburger = document.getElementById('hamburger');
+        const captionInput = document.getElementById('captionInput');
+        const charCount = document.getElementById('charCount');
+        const aiGenerateBtn = document.getElementById('aiGenerateBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const photoUpload = document.getElementById('photoUpload');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const progressDots = document.getElementById('progressDots');
+        const photoboxCard = document.getElementById('photoboxCard');
+        const cardAccentBar = document.getElementById('cardAccentBar');
+        const cardPhotos = document.getElementById('cardPhotos');
+        const cardCaption = document.getElementById('cardCaption');
+        const contactForm = document.getElementById('contactForm');
+        const formSuccess = document.getElementById('formSuccess');
+        const toast = document.getElementById('toast');
+
+        // Initialize
+        function init() {
+            setupEventListeners();
+            updatePreview();
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Navbar scroll effect
+            window.addEventListener('scroll', handleScroll);
+
+            // Mobile menu toggle
+            hamburger.addEventListener('click', toggleMobileMenu);
+
+            // Template selection
+            document.querySelectorAll('.template-option').forEach(option => {
+                option.addEventListener('click', () => selectTemplate(option.dataset.template));
+            });
+
+            // Photo count selection
+            document.querySelectorAll('.count-btn').forEach(btn => {
+                btn.addEventListener('click', () => selectPhotoCount(parseInt(btn.dataset.count)));
+            });
+
+            // Caption input
+            captionInput.addEventListener('input', handleCaptionInput);
+
+            // AI Generate
+            aiGenerateBtn.addEventListener('click', generateAICaption);
+
+            // Upload button
+            uploadBtn.addEventListener('click', () => photoUpload.click());
+            photoUpload.addEventListener('change', handlePhotoUpload);
+
+            // Download button
+            downloadBtn.addEventListener('click', downloadCard);
+
+            // Contact form
+            contactForm.addEventListener('submit', handleContactSubmit);
+            document.getElementById('sendAnotherBtn').addEventListener('click', resetContactForm);
+
+            // Photo slot clicks
+            cardPhotos.addEventListener('click', handlePhotoSlotClick);
+        }
+
+        // Scroll Handler
+        function handleScroll() {
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            navLinks.classList.toggle('active');
+        }
+
+        // Template Selection
+        function selectTemplate(template) {
+            state.currentTemplate = template;
+            
+            // Update UI
+            document.querySelectorAll('.template-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            document.querySelector(`[data-template="${template}"]`).classList.add('active');
+            
+            updatePreview();
+        }
+
+        // Photo Count Selection
+        function selectPhotoCount(count) {
+            state.photoCount = count;
+            
+            // Update UI
+            document.querySelectorAll('.count-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-count="${count}"]`).classList.add('active');
+            
+            // Trim photos array if needed
+            if (state.photos.length > count) {
+                state.photos = state.photos.slice(0, count);
+            }
+            
+            updatePreview();
+        }
+
+        // Caption Input Handler
+        function handleCaptionInput(e) {
+            state.caption = e.target.value;
+            charCount.textContent = `${state.caption.length}/80`;
+            cardCaption.textContent = state.caption;
+        }
+
+        // AI Caption Generation
+        async function generateAICaption() {
+            if (state.isGenerating) return;
+            
+            state.isGenerating = true;
+            aiGenerateBtn.innerHTML = '<span class="loading"></span>';
+            aiGenerateBtn.disabled = true;
+
+            try {
+                const response = await fetch('/functions/generate-reflection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.reflection) {
+                    state.caption = data.reflection.substring(0, 80);
+                    captionInput.value = state.caption;
+                    cardCaption.textContent = state.caption;
+                    charCount.textContent = `${state.caption.length}/80`;
+                    showToast('✨ Caption generated!', 'success');
+                }
+            } catch (error) {
+                // Fallback captions
+                const fallbackCaptions = [
+                    "Every moment is a fresh beginning ✨",
+                    "Collect moments, not things 💫",
+                    "Life is better through the lens 📸",
+                    "Chasing sunsets and dreams 🌅",
+                    "Making memories one click at a time 💜",
+                    "Today's mood: grateful 🙏",
+                    "Little moments, big memories ✨",
+                    "Living my best life 🌟"
+                ];
+                
+                state.caption = fallbackCaptions[Math.floor(Math.random() * fallbackCaptions.length)];
+                captionInput.value = state.caption;
+                cardCaption.textContent = state.caption;
+                charCount.textContent = `${state.caption.length}/80`;
+                showToast('✨ Caption generated!', 'success');
+            } finally {
+                state.isGenerating = false;
+                aiGenerateBtn.innerHTML = '✨ AI Generate';
+                aiGenerateBtn.disabled = false;
+            }
+        }
+
+        // Photo Upload Handler
+        function handlePhotoUpload(e) {
+            const files = Array.from(e.target.files);
+            const remainingSlots = state.photoCount - state.photos.length;
+            
+            if (files.length === 0) return;
+            
+            files.slice(0, remainingSlots).forEach(file => {
+                // Validate file
+                if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                    showToast('Please upload JPEG, PNG, or WebP files', 'error');
+                    return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('File size must be under 5MB', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    state.photos.push(event.target.result);
+                    updatePreview();
+                    updateProgressDots();
+                    
+                    if (state.photos.length >= state.photoCount) {
+                        showToast('📸 All slots filled!', 'success');
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            // Reset input
+            photoUpload.value = '';
+        }
+
+        // Delete Photo
+        window.deletePhoto = function(e, index) {
+            e.stopPropagation();
+            state.photos.splice(index, 1);
+            updatePreview();
+            updateProgressDots();
+        };
+
+        // Photo Slot Click Handler
+        function handlePhotoSlotClick(e) {
+            const slot = e.target.closest('.photo-slot');
+            if (slot && !slot.querySelector('img')) {
+                const index = parseInt(slot.dataset.index);
+                if (index < state.photoCount && state.photos.length < state.photoCount) {
+                    photoUpload.click();
+                }
+            }
+        }
+
+        // Update Progress Dots
+        function updateProgressDots() {
+            const dots = progressDots.querySelectorAll('.progress-dot');
+            dots.forEach((dot, index) => {
+                if (index < state.photos.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        // Update Preview
+        function updatePreview() {
+            const template = templates[state.currentTemplate];
+            
+            // Update accent bar
+            cardAccentBar.style.background = template.gradient;
+            
+            // Update decorations
+            document.getElementById('decorationTopLeft').textContent = template.decorations[0];
+            document.getElementById('decorationTopRight').textContent = template.decorations[1];
+            document.getElementById('decorationBottomLeft').textContent = template.decorations[2];
+            document.getElementById('decorationBottomRight').textContent = template.decorations[3];
+            
+            // Update photo grid
+            const layout = layouts[state.photoCount];
+            cardPhotos.style.gridTemplateColumns = `repeat(${layout.cols}, 1fr)`;
+            cardPhotos.style.gridTemplateRows = `repeat(${layout.rows}, 1fr)`;
+            
+            // Clear and rebuild photo slots
+            cardPhotos.innerHTML = '';
+            for (let i = 0; i < state.photoCount; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'photo-slot';
+                slot.dataset.index = i;
+                
+                if (state.photos[i]) {
+                    const img = document.createElement('img');
+                    img.src = state.photos[i];
+                    slot.appendChild(img);
+                } else {
+                    const placeholder = document.createElement('span');
+                    placeholder.className = 'placeholder';
+                    placeholder.textContent = '+';
+                    slot.appendChild(placeholder);
+                }
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '✕';
+                deleteBtn.onclick = (e) => deletePhoto(e, i);
+                slot.appendChild(deleteBtn);
+                
+                cardPhotos.appendChild(slot);
+            }
+            
+            // Update caption
+            cardCaption.textContent = state.caption;
+        }
+
+        // Download Card (Canvas Export)
+        function downloadCard() {
+            if (state.photos.length === 0) {
+                showToast('Please add at least one photo!', 'error');
+                return;
+            }
+            
+            const canvas = document.getElementById('exportCanvas');
+            const ctx = canvas.getContext('2d');
+            const template = templates[state.currentTemplate];
+            const layout = layouts[state.photoCount];
+            
+            // Set canvas size (2x resolution for high quality)
+            const baseWidth = 800;
+            const baseHeight = 1000;
+            const scale = 2;
+            canvas.width = baseWidth * scale;
+            canvas.height = baseHeight * scale;
+            
+            // Scale context
+            ctx.scale(scale, scale);
+            
+            // Draw white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, baseWidth, baseHeight);
+            
+            // Draw rounded corners
+            ctx.fillStyle = '#ffffff';
+            roundRect(ctx, 10, 10, baseWidth - 20, baseHeight - 20, 20);
+            ctx.fill();
+            
+            // Draw accent bar
+            const accentHeight = 60;
+            const gradient = ctx.createLinearGradient(0, 10, baseWidth, 10 + accentHeight);
+            gradient.addColorStop(0, template.accent);
+            gradient.addColorStop(1, template.accent);
+            ctx.fillStyle = gradient;
+            roundRect(ctx, 10, 10, baseWidth - 20, accentHeight, 20);
+            ctx.fill();
+            
+            // Draw watermark
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = 'bold 24px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('VELYNCAM', baseWidth / 2, 10 + accentHeight / 2 + 8);
+            
+            // Calculate photo area
+            const photoAreaTop = 10 + accentHeight + 20;
+            const photoAreaHeight = baseHeight - accentHeight - 150;
+            const photoAreaLeft = 30;
+            const photoAreaRight = baseWidth - 30;
+            const photoAreaWidth = photoAreaRight - photoAreaLeft;
+            
+            // Draw photos
+            const photoPadding = 10;
+            const photoCols = layout.cols;
+            const photoRows = layout.rows;
+            const photoWidth = (photoAreaWidth - (photoCols - 1) * photoPadding) / photoCols;
+            const photoHeight = (photoAreaHeight - (photoRows - 1) * photoPadding) / photoRows;
+            
+            state.photos.forEach((photoSrc, index) => {
+                const row = Math.floor(index / photoCols);
+                const col = index % photoCols;
+                const x = photoAreaLeft + col * (photoWidth + photoPadding);
+                const y = photoAreaTop + row * (photoHeight + photoPadding);
+                
+                // Load and draw image
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    // Clip to rounded rectangle
+                    ctx.save();
+                    roundRect(ctx, x, y, photoWidth, photoHeight, 10);
+                    ctx.clip();
+                    
+                    // Calculate aspect ratio and center image
+                    const imgAspect = img.width / img.height;
+                    const slotAspect = photoWidth / photoHeight;
+                    
+                    let drawWidth, drawHeight, offsetX, offsetY;
+                    
+                    if (imgAspect > slotAspect) {
+                        drawHeight = photoHeight;
+                        drawWidth = photoHeight * imgAspect;
+                        offsetX = (photoWidth - drawWidth) / 2;
+                        offsetY = 0;
+                    } else {
+                        drawWidth = photoWidth;
+                        drawHeight = photoWidth / imgAspect;
+                        offsetX = 0;
+                        offsetY = (photoHeight - drawHeight) / 2;
+                    }
+                    
+                    ctx.drawImage(img, x + offsetX, y + offsetY, drawWidth, drawHeight);
+                    ctx.restore();
+                    
+                    // If last photo, trigger download
+                    if (index === state.photos.length - 1) {
+                        triggerDownload(canvas);
+                    }
+                };
+                img.src = photoSrc;
+            });
+            
+            // Draw caption strip
+            const captionY = baseHeight - 100;
+            ctx.fillStyle = '#f5f5f5';
+            ctx.fillRect(10, captionY, baseWidth - 20, 90);
+            
+            // Draw caption text
+            if (state.caption) {
+                ctx.fillStyle = '#1a1a1a';
+                ctx.font = 'italic 36px Caveat';
+                ctx.textAlign = 'center';
+                ctx.fillText(state.caption, baseWidth / 2, captionY + 50);
+            }
+            
+            // Draw branding
+            ctx.fillStyle = '#999999';
+            ctx.font = '14px Inter';
+            ctx.letterSpacing = '2px';
+            ctx.fillText('velyncam · 2026', baseWidth / 2, captionY + 80);
+            
+            // Trigger download after a short delay to allow rendering
+            setTimeout(() => triggerDownload(canvas), 500);
+        }
+
+        // Helper function for rounded rectangles
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        // Trigger Download
+        function triggerDownload(canvas) {
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `velyncam-${Date.now()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                showToast('💾 Card downloaded!', 'success');
+            }, 'image/png');
+        }
+
+        // Contact Form Handler
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            // Validation
+            if (!fullName || !email || !message) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                showToast('Please enter a valid email', 'error');
+                return;
+            }
+            
+            // Simulate submission
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span> Sending...';
+            
+            setTimeout(() => {
+                contactForm.style.display = 'none';
+                formSuccess.classList.add('show');
+                showToast('✅ Message sent!', 'success');
+            }, 1500);
+        }
+
+        // Email Validation
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        // Reset Contact Form
+        function resetContactForm() {
+            document.getElementById('fullName').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('message').value = '';
+            formSuccess.classList.remove('show');
+            contactForm.style.display = 'block';
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').innerHTML = 'Send Message';
+        }
+
+        // Toast Notification
+        function showToast(message, type = 'info') {
+            toast.textContent = message;
+            toast.className = 'toast show';
+            if (type === 'success') {
+                toast.classList.add('success');
+            }
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
